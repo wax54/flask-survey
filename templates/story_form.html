@@ -1,0 +1,19 @@
+{% extends 'base.html'%}
+
+{%block title%}Give Me Some Parts Of Speech!{%endblock%}
+
+{%block content%}
+<!-- Title -->
+    <h1>MADLIBS!</h1>
+    <form action="/story_result/{{story_id}}" id="story_form" method="GET">
+        <!-- for each prompt, make an input/label combo -->
+        {% for part_of_speech in prompts %}
+        <div class="form_input">
+            <label for="{{part_of_speech}}">{{part_of_speech}}:</label>
+            <input style="font-size: large;" type="text" name="{{part_of_speech}}" id="{{part_of_speech}}">
+        </div>
+        {%endfor%}
+        <!-- submit button for the form after the for loop -->
+        <input type="submit">
+    </form>
+{%endblock%}

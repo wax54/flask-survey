@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/app.css">
+    <title>{% block title%}Base Template{% endblock %}</title>
+</head>
+
+<body>
+    <!-- The Nav Bar -->
+    <nav class="navbar">
+        <a href="/">Choose a Story</a>
+    </nav>
+    <!-- The main content -->
+    <main id="main">
+        {% block content %}
+        GENERAL CONTENT
+        {% endblock %}
+    </main>
+
+</body>
+
+</html>

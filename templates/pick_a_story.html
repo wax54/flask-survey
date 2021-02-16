@@ -1,0 +1,22 @@
+{% extends 'base.html'%}
+
+{%block title%}Choose Your Adventure!{%endblock%}
+{%block content%}
+<!-- Title -->
+<h1>Choose An Adventure!</h1>
+<!-- The stories all go in this list -->
+<ul class="story_list">
+    <!-- for every story in the list -->
+    {% for i in range(story_list.__len__()) %}
+    <!-- make a li with an id coresponding to the story -->
+    <li id="story{{i}}" class="story_option">
+        <!-- add the story description -->
+        <span>
+            "{{story_list[i].description}}" - The Author
+        </span>
+        <!-- add the story link -->
+        <a class="story_link" href="story/{{i}}">Start Now!</a>
+    </li>
+    {% endfor %}
+</ul>
+{%endblock%}
