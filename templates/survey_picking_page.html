@@ -6,7 +6,7 @@
 <h1>Which Survey do you want to take?</h1>
 <!-- The Surveys -->
 {% for (survey_name, survey) in surveys.items() %}
-<form action="/{{survey_name}}" method="GET">
+<form action="/{{survey_name}}">
     <input type="submit" id="{{survey_name}}button" value="More Details" class="button">
     <label for="{{survey_name}}button">{{survey.title}}</label>
 </form>

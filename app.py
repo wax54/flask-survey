@@ -29,15 +29,20 @@ def survey_picking_page():
 def survey_start_page(survey_name):
     """the start page for a specific survey"""
     survey = surveys.get(survey_name)
+    # if the survey exists...
     if survey:
+        # ...show the user the survey info
         return render('survey_start.html', survey=survey, survey_name=survey_name)
+    # ...otherwise, navigate them back to the pick a survey page
     return redirect('/')
 
 
 @app.route('/start_survey/<survey_name>', methods=["POST"])
 def survey_start(survey_name):
     """starts a session for the survey and navigates to the first question"""
+    # store the survey name
     session[SURVEY_KEY] = survey_name
+    # make a new responses list in the session
     session[RES_KEY] = []
     return redirect('/questions/0')
 
@@ -45,15 +50,23 @@ def survey_start(survey_name):
 @app.route('/questions/<int:q_id>')
 def question(q_id):
     """Displays the question"""
-    curr_question = len(session[RES_KEY])
+    # get the survey from surveys using the survey name
     survey = surveys.get(session[SURVEY_KEY])
-    # not the right question
+    if survey == None:
+        #no survey in session, go to the survey picker
+        return redirect('/')
+
+    # get the current question index
+    curr_question = len(session[RES_KEY])
+    # if the user is trying to access a question out of order...
     if q_id != curr_question:
+        # ...flash 'em and send them to the right Q
         flash("let's not try to make trouble here. Let's just finish the suvery ok?")
         return redirect(f"/questions/{curr_question}")
 
-    # all q's are answered - The end of the survey
-    if len(survey.questions) <= curr_question:
+    # this means all q's are answered - it's the end of the survey
+    if survey_over():
+        # send them to the thankyou page
         return redirect('/thankyou')
 
     # try to get the question
@@ -67,16 +80,21 @@ def question(q_id):
 @app.route('/answer', methods=["POST"])
 def answer():
     """records an answer if present"""
+    #gets the current question
     curr_question = len(session[RES_KEY])
-
+    #gets the answer from the POST data
     answer = request.form.get('choice')
-    if not answer:
+    #if the user didn't select an answer...
+    if answer == None:
+        #flash them and send them back to the same question  
         flash("Please answer the Question!!!")
         return redirect(f"/questions/{curr_question}")
-
+    #append the response
     responses = session[RES_KEY]
     responses.append(answer)
+    #store it back in the session
     session[RES_KEY] = responses
+    #move the user on to the next question
     curr_question = len(session[RES_KEY])
     return redirect(f"/questions/{curr_question}")
 
@@ -84,7 +102,12 @@ def answer():
 @app.route('/thankyou')
 def thankyou_page():
     """shows user the thank you page"""
-    return render('thankyou.html', results=get_q_and_a())
+    #if the survey is really over...
+    if survey_over():
+        #send them the thankyou page
+        return render('thankyou.html', results=get_q_and_a())
+    #otherwise, give 'em back to questions to deal with...
+    return redirect('/questions/0')
 
 
 def get_q_and_a():
@@ -93,8 +116,6 @@ def get_q_and_a():
     all non-answered questions will be None
         [(q1,a1),(q2,a2)...]
     """
-    # import pdb
-    # pdb.set_trace()
     survey = surveys.get(session[SURVEY_KEY])
     answers = session[RES_KEY]
     q_and_a = []
@@ -103,3 +124,15 @@ def get_q_and_a():
         q = survey.questions[i].question
         q_and_a.append((q, a))
     return q_and_a
+
+
+def survey_over():
+    """checks to see if the survey is over"""
+    curr_question = len(session[RES_KEY])
+    survey_length = len(surveys.get(session[SURVEY_KEY]).questions)
+    # this means all q's are answered
+    # (and maybe more, lol I wonder if that'll ever happen...)
+    # - it's the end of the survey
+    if survey_length <= curr_question:
+        return True
+    return False
