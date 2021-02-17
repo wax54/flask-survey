@@ -6,5 +6,12 @@
 <!-- the story -->
 <p class="story_result">We wanted to say, from the bottom of our hearts, Thank You for filling out our survey today!
 </p>
+{% for (q, a) in results %}
+<h2>{{q}} </h2>
+<h3>Your Answer --> {{a}}</h3>
+{% endfor %}
+<form action="/" method="GET">
+    <input type="submit" value="Fill out another Survey?">
+</form>
 
 {% endblock%}

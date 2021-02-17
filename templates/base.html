@@ -14,12 +14,7 @@
         <a href="/">Choose a Story</a>
     </nav> -->
 
-<!-- The flashed Content  -->
-<section id="flashed_messages">
-    {% for msg in get_flashed_messages() %}
-    <p>{{msg}}</p>
-    {% endfor %}
-</section>
+
 
     <!-- The main content -->
     <main id="main">
@@ -27,7 +22,12 @@
         GENERAL CONTENT
         {% endblock %}
     </main>
-
+<!-- The flashed Content  -->
+<section id="flashed_messages">
+    {% for msg in get_flashed_messages() %}
+    <p>{{msg}}</p>
+    {% endfor %}
+</section>
 </body>
 
 </html>
