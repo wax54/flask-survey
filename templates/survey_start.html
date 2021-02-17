@@ -6,6 +6,7 @@
 <h1>{{survey.title}}</h1>
 <!-- The instructions -->
 <h3>{{survey.instructions}}</h3>
-<a href="/questions/0" class="button">Start Survey</a>
-
+<form action="/start_survey" method="post">
+    <input type="submit" value="Start Survey" class="button">
+</form>
 {%endblock%}
