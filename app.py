@@ -53,21 +53,22 @@ def question(q_id):
     # get the survey from surveys using the survey name
     survey = surveys.get(session[SURVEY_KEY])
     if survey == None:
-        #no survey in session, go to the survey picker
+        # no survey in session, go to the survey picker
         return redirect('/')
 
     # get the current question index
     curr_question = len(session[RES_KEY])
+
+    # if the survey is over
+    if survey_over():
+        # send them to the thankyou page
+        return redirect('/thankyou')
+
     # if the user is trying to access a question out of order...
     if q_id != curr_question:
         # ...flash 'em and send them to the right Q
         flash("let's not try to make trouble here. Let's just finish the suvery ok?")
         return redirect(f"/questions/{curr_question}")
-
-    # this means all q's are answered - it's the end of the survey
-    if survey_over():
-        # send them to the thankyou page
-        return redirect('/thankyou')
 
     # try to get the question
     try:
@@ -80,21 +81,21 @@ def question(q_id):
 @app.route('/answer', methods=["POST"])
 def answer():
     """records an answer if present"""
-    #gets the current question
+    # gets the current question
     curr_question = len(session[RES_KEY])
-    #gets the answer from the POST data
+    # gets the answer from the POST data
     answer = request.form.get('choice')
-    #if the user didn't select an answer...
+    # if the user didn't select an answer...
     if answer == None:
-        #flash them and send them back to the same question  
+        # flash them and send them back to the same question
         flash("Please answer the Question!!!")
         return redirect(f"/questions/{curr_question}")
-    #append the response
+    # append the response
     responses = session[RES_KEY]
     responses.append(answer)
-    #store it back in the session
+    # store it back in the session
     session[RES_KEY] = responses
-    #move the user on to the next question
+    # move the user on to the next question
     curr_question = len(session[RES_KEY])
     return redirect(f"/questions/{curr_question}")
 
@@ -102,11 +103,11 @@ def answer():
 @app.route('/thankyou')
 def thankyou_page():
     """shows user the thank you page"""
-    #if the survey is really over...
+    # if the survey is really over...
     if survey_over():
-        #send them the thankyou page
+        # send them the thankyou page
         return render('thankyou.html', results=get_q_and_a())
-    #otherwise, give 'em back to questions to deal with...
+    # otherwise, give 'em back to questions to deal with...
     return redirect('/questions/0')
 
 
@@ -120,8 +121,11 @@ def get_q_and_a():
     answers = session[RES_KEY]
     q_and_a = []
     for i in range(len(survey.questions)):
+        # emulates get of a dictionary
         a = answers[i] if i < len(answers) else None
+        # gets the question from the survey
         q = survey.questions[i].question
+        # throws 'em together
         q_and_a.append((q, a))
     return q_and_a
 
