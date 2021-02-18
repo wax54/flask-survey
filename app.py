@@ -16,7 +16,7 @@ app = Flask(__name__)
 # For the debugger toolbar
 app.config['SECRET_KEY'] = 'a secret key'
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
-toolbar = DebugToolbarExtension(app)
+# toolbar = DebugToolbarExtension(app)
 
 
 @app.route('/')
@@ -50,14 +50,16 @@ def survey_start(survey_name):
 @app.route('/questions/<int:q_id>')
 def question(q_id):
     """Displays the question"""
+
     # get the survey from surveys using the survey name
-    survey = surveys.get(session[SURVEY_KEY])
-    if survey == None:
+    survey = get_survey()
+    responses = get_responses()
+    if survey == False or responses == False:
         # no survey in session, go to the survey picker
         return redirect('/')
 
     # get the current question index
-    curr_question = len(session[RES_KEY])
+    curr_question = len(responses)
 
     # if the survey is over
     if survey_over():
@@ -67,7 +69,7 @@ def question(q_id):
     # if the user is trying to access a question out of order...
     if q_id != curr_question:
         # ...flash 'em and send them to the right Q
-        flash("let's not try to make trouble here. Let's just finish the suvery ok?")
+        flash("let's not try to make trouble here. Just finish the suvery ok?")
         return redirect(f"/questions/{curr_question}")
 
     # try to get the question
@@ -81,8 +83,9 @@ def question(q_id):
 @app.route('/answer', methods=["POST"])
 def answer():
     """records an answer if present"""
+    responses = get_responses()
     # gets the current question
-    curr_question = len(session[RES_KEY])
+    curr_question = len(responses)
     # gets the answer from the POST data
     answer = request.form.get('choice')
     # if the user didn't select an answer...
@@ -91,12 +94,11 @@ def answer():
         flash("Please answer the Question!!!")
         return redirect(f"/questions/{curr_question}")
     # append the response
-    responses = session[RES_KEY]
     responses.append(answer)
     # store it back in the session
     session[RES_KEY] = responses
     # move the user on to the next question
-    curr_question = len(session[RES_KEY])
+    curr_question = len(responses)
     return redirect(f"/questions/{curr_question}")
 
 
@@ -115,10 +117,14 @@ def get_q_and_a():
     """formats the questions and answers as a list of tuples
     for as many questions as there are in th current sessions survey. 
     all non-answered questions will be None
+    returns False when no session[SURVEY_KEY] is present
         [(q1,a1),(q2,a2)...]
     """
-    survey = surveys.get(session[SURVEY_KEY])
+    survey = get_survey()
     answers = session[RES_KEY]
+    if not survey or not answers:
+        # no survey in session, return false
+        return False
     q_and_a = []
     for i in range(len(survey.questions)):
         # emulates get of a dictionary
@@ -131,7 +137,13 @@ def get_q_and_a():
 
 
 def survey_over():
-    """checks to see if the survey is over"""
+    """checks to see if the survey is over
+    returns Flase if no survey in session
+    """
+    if not get_survey():
+        # no survey in session, return false
+        return False
+
     curr_question = len(session[RES_KEY])
     survey_length = len(surveys.get(session[SURVEY_KEY]).questions)
     # this means all q's are answered
@@ -140,3 +152,17 @@ def survey_over():
     if survey_length <= curr_question:
         return True
     return False
+
+
+def get_survey():
+    """gets the survey from the session"""
+    if session.get(SURVEY_KEY) == None:
+        return False
+    return surveys.get(session[SURVEY_KEY])
+
+
+def get_responses():
+    """Gets the responses from the session"""
+    if session.get(RES_KEY) == None:
+        return False
+    return session[RES_KEY]
