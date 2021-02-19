@@ -89,6 +89,10 @@ def question(q_id):
 def answer():
     """records an answer if present"""
     responses = get_responses()
+    # there is no survey/response object rn...
+    if responses is False:
+        #... return to the home page
+        return redirect('/')
     # gets the current question
     curr_question = len(responses)
     # gets the answer from the POST data
@@ -181,6 +185,8 @@ def get_survey():
 
 def get_responses():
     """Gets the responses from the session"""
+    if not session.get(SURVEY_KEY):
+        return False
     if session.get(session[SURVEY_KEY]+RES_KEY) == None:
         return False
     return session[session[SURVEY_KEY]+RES_KEY]
