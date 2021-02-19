@@ -4,11 +4,20 @@
 {%block content%}
 <!-- Title -->
 <h1>Which Survey do you want to take?</h1>
-<!-- The Surveys -->
-{% for (survey_name, survey) in surveys.items() %}
-<form action="/{{survey_name}}">
-    <input type="submit" id="{{survey_name}}button" value="More Details" class="button">
-    <label for="{{survey_name}}button">{{survey.title}}</label>
+<!-- The undone Surveys -->
+{% for (survey_id, survey) in valid_surveys.items() %}
+<form action="/" method="POST">
+    <button name="survey_id" id="{{survey_id}}button" value="{{survey_id}}">More Details</button>
+    <label for="{{survey_id}}button">{{survey.title}}</label>
+</form>
+{% endfor %}
+
+<h3>You can also view results of surveys you've already taken.</h3>
+<!-- The Done Surveys -->
+{% for (survey_id, survey) in done_surveys.items() %}
+<form action="/get_results" method="GET">
+    <button name="survey_id" id="{{survey_id}}button" value="{{survey_id}}">Show Responses</button>
+    <label for="{{survey_id}}button">{{survey.title}}</label>
 </form>
 {% endfor %}
 {%endblock%}

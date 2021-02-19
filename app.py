@@ -1,4 +1,4 @@
-from flask import Flask, render_template as render, request, redirect, flash, session
+from flask import Flask, render_template as render, request, redirect, flash, session, make_response
 from flask_debugtoolbar import DebugToolbarExtension
 from surveys import surveys
 
@@ -6,9 +6,9 @@ from surveys import surveys
 # import pdb
 # pdb.set_trace()
 
-SURVEY_KEY = "survey_name"
+SURVEY_KEY = "survey_id"
 RES_KEY = "responses"
-
+TEMP_SURVEY = "temp_survey"
 
 # make the app
 app = Flask(__name__)
@@ -22,28 +22,34 @@ app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 @app.route('/')
 def survey_picking_page():
     """The page that allows the user to pick a survey to complete"""
-    return render('survey_picking_page.html', surveys=surveys)
+    surveys = split_surveys()
+    return render('survey_picking_page.html', valid_surveys=surveys['valid'], done_surveys=surveys['done'])
 
 
-@app.route('/<survey_name>')
-def survey_start_page(survey_name):
+@app.route('/', methods=["POST"])
+def survey_start_page():
     """the start page for a specific survey"""
-    survey = surveys.get(survey_name)
+
+    survey_id = request.form['survey_id']
+    survey = surveys.get(survey_id)
+
     # if the survey exists...
     if survey:
+        session[TEMP_SURVEY] = survey_id
         # ...show the user the survey info
-        return render('survey_start.html', survey=survey, survey_name=survey_name)
+        return render('survey_start.html', survey=survey)
     # ...otherwise, navigate them back to the pick a survey page
     return redirect('/')
 
 
-@app.route('/start_survey/<survey_name>', methods=["POST"])
-def survey_start(survey_name):
+@app.route('/start_survey', methods=["POST"])
+def survey_start():
     """starts a session for the survey and navigates to the first question"""
+    session.permanent = True
     # store the survey name
-    session[SURVEY_KEY] = survey_name
+    session[SURVEY_KEY] = session[TEMP_SURVEY]
     # make a new responses list in the session
-    session[RES_KEY] = []
+    session[session[SURVEY_KEY] + RES_KEY] = []
     return redirect('/questions/0')
 
 
@@ -93,10 +99,14 @@ def answer():
         # flash them and send them back to the same question
         flash("Please answer the Question!!!")
         return redirect(f"/questions/{curr_question}")
+
+    extra_info = request.form.get('extra_info')
+    if extra_info == None:
+        extra_info = ''
     # append the response
-    responses.append(answer)
+    responses.append((answer, extra_info))
     # store it back in the session
-    session[RES_KEY] = responses
+    session[session[SURVEY_KEY]+RES_KEY] = responses
     # move the user on to the next question
     curr_question = len(responses)
     return redirect(f"/questions/{curr_question}")
@@ -113,6 +123,15 @@ def thankyou_page():
     return redirect('/questions/0')
 
 
+@app.route('/get_results', methods=["GET"])
+def review_previous_survey():
+    """starts a session for the survey and navigates to the first question"""
+    # store the survey name
+    session[SURVEY_KEY] = request.args['survey_id']
+    
+    return redirect('/thankyou')
+
+
 def get_q_and_a():
     """formats the questions and answers as a list of tuples
     for as many questions as there are in th current sessions survey. 
@@ -121,18 +140,19 @@ def get_q_and_a():
         [(q1,a1),(q2,a2)...]
     """
     survey = get_survey()
-    answers = session[RES_KEY]
-    if not survey or not answers:
+    responses = get_responses()
+    if not survey or not responses:
         # no survey in session, return false
         return False
     q_and_a = []
     for i in range(len(survey.questions)):
         # emulates get of a dictionary
-        a = answers[i] if i < len(answers) else None
+        response = responses[i] if i < len(responses) else (None, '')
+        a, extra_info = response
         # gets the question from the survey
         q = survey.questions[i].question
         # throws 'em together
-        q_and_a.append((q, a))
+        q_and_a.append((q, a, extra_info))
     return q_and_a
 
 
@@ -144,8 +164,8 @@ def survey_over():
         # no survey in session, return false
         return False
 
-    curr_question = len(session[RES_KEY])
-    survey_length = len(surveys.get(session[SURVEY_KEY]).questions)
+    curr_question = len(get_responses())
+    survey_length = len(get_survey().questions)
     # this means all q's are answered
     # (and maybe more, lol I wonder if that'll ever happen...)
     # - it's the end of the survey
@@ -163,6 +183,19 @@ def get_survey():
 
 def get_responses():
     """Gets the responses from the session"""
-    if session.get(RES_KEY) == None:
+    if session.get(session[SURVEY_KEY]+RES_KEY) == None:
         return False
-    return session[RES_KEY]
+    return session[session[SURVEY_KEY]+RES_KEY]
+
+
+def split_surveys():
+    split_surveys = {"done":  {},  "valid":  {}}
+    for survey_id, survey in surveys.items():
+        # If the key exists...
+        if session.get(survey_id+RES_KEY):
+            # ... add it to the done surveys
+            split_surveys['done'][survey_id] = survey
+        else:
+            # ...add it to the valid responses
+            split_surveys['valid'][survey_id] = survey
+    return split_surveys

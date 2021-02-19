@@ -13,6 +13,10 @@
         <label for="{{choice}}">{{choice}}</label>
         {% endfor %}
     </div>
+    {% if question.allow_text %}
+    <label for="extra_info">Other Info</label>
+    <input type="text-area" name="extra_info" id="extra_info">
+    {% endif %}
     <input type="submit">
 </form>
 {%endblock%}
