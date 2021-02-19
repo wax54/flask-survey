@@ -2,22 +2,30 @@
 
 {%block title%}Pick a Survey!{%endblock%}
 {%block content%}
-<!-- Title -->
-<h1>Which Survey do you want to take?</h1>
-<!-- The undone Surveys -->
-{% for (survey_id, survey) in valid_surveys.items() %}
-<form action="/" method="POST">
-    <button name="survey_id" id="{{survey_id}}button" value="{{survey_id}}">More Details</button>
-    <label for="{{survey_id}}button">{{survey.title}}</label>
-</form>
-{% endfor %}
+{% if valid_surveys != {} %}
+    <!-- Title -->
+    <h1>Which Survey do you want to take?</h1>
+    <!-- The undone Surveys -->
+    {% for (survey_id, survey) in valid_surveys.items() %}
+        <form action="/" method="POST">
+            <button name="survey_id" id="{{survey_id}}button" value="{{survey_id}}">More Details</button>
+            <label for="{{survey_id}}button">{{survey.title}}</label>
+        </form>
+    {% endfor %}
+{% else %}
+<p>Sorry, No more Surveys Right now, But...</p>
+{% endif %}
 
-<h3>You can also view results of surveys you've already taken.</h3>
-<!-- The Done Surveys -->
-{% for (survey_id, survey) in done_surveys.items() %}
-<form action="/get_results" method="GET">
-    <button name="survey_id" id="{{survey_id}}button" value="{{survey_id}}">Show Responses</button>
-    <label for="{{survey_id}}button">{{survey.title}}</label>
-</form>
-{% endfor %}
+{% if done_surveys != {} %}
+<!-- Title -->
+<h3>You can also view results of surveys you've already taken!</h3>
+    <!-- The Done Surveys -->
+    {% for (survey_id, survey) in done_surveys.items() %}
+        <form action="/get_results" method="GET">
+            <button name="survey_id" id="{{survey_id}}button" value="{{survey_id}}">Show Responses</button>
+            <label for="{{survey_id}}button">{{survey.title}}</label>
+        </form>
+    {% endfor %}
+{% endif %}
+
 {%endblock%}
