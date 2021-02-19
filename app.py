@@ -128,7 +128,7 @@ def thankyou_page():
 
 @app.route('/get_results', methods=["GET"])
 def review_previous_survey():
-    """starts a session for the survey and navigates to the first question"""
+    """starts a session for the survey and navigates to the thankyou page"""
     # store the survey name
     session[SURVEY_KEY] = request.args['survey_id']
     return redirect('/thankyou')
@@ -193,6 +193,10 @@ def get_responses():
 
 
 def split_surveys():
+    """ splits the 'surveys' object into two categories, 'done' and 'valid'
+    done surveys are surveys that have response data already stored in the session
+    valid surveys do not
+    """
     split_surveys = {"done":  {},  "valid":  {}}
     for survey_id, survey in surveys.items():
         # If the key exists...
