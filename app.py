@@ -35,9 +35,8 @@ def survey_start_page():
 
     # if the survey exists...
     if survey:
-        session[TEMP_SURVEY] = survey_id
         # ...show the user the survey info
-        return render('survey_start.html', survey=survey)
+        return render('survey_start.html', survey=survey, survey_id=survey_id)
     # ...otherwise, navigate them back to the pick a survey page
     return redirect('/')
 
@@ -47,7 +46,7 @@ def survey_start():
     """starts a session for the survey and navigates to the first question"""
     session.permanent = True
     # store the survey name
-    session[SURVEY_KEY] = session[TEMP_SURVEY]
+    session[SURVEY_KEY] = request.form['survey_id']
     # make a new responses list in the session
     session[session[SURVEY_KEY] + RES_KEY] = []
     return redirect('/questions/0')
@@ -118,7 +117,7 @@ def thankyou_page():
     # if the survey is really over...
     if survey_over():
         # send them the thankyou page
-        return render('thankyou.html', results=get_q_and_a())
+        return render('thankyou.html', results=get_q_and_a(), survey_id=session[SURVEY_KEY])
     # otherwise, give 'em back to questions to deal with...
     return redirect('/questions/0')
 
@@ -128,7 +127,6 @@ def review_previous_survey():
     """starts a session for the survey and navigates to the first question"""
     # store the survey name
     session[SURVEY_KEY] = request.args['survey_id']
-    
     return redirect('/thankyou')
 
 

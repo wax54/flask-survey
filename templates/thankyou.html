@@ -11,7 +11,9 @@
 <h3>Your Answer --> {{a}}{% if extra_info != ''%}, {{extra_info}}{% endif %}</h3>
 {% endfor %}
 <form action="/" method="GET">
-    <input type="submit" value="Fill out another Survey?">
+    <button>Fill out another Survey?</button>
 </form>
-
+<form action="/start_survey" method="POST">
+    <button name="survey_id" value="{{survey_id}}">Restart this Survey?</button>
+</form>
 {% endblock%}

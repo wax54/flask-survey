@@ -7,6 +7,6 @@
 <!-- The instructions -->
 <h3>{{survey.instructions}}</h3>
 <form action="/start_survey" method="POST">
-    <input type="submit" value="Start Survey" class="button">
+    <button name="survey_id" value="{{survey_id}}" class="button">Start Survey</button>
 </form>
 {%endblock%}
